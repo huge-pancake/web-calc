@@ -10,6 +10,8 @@ const validNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
 const validSym = ['+', '-', '*', '/', '%', '(', ')'];
 let unpairedBrackets = 0;
 
+let lastFocus = allButtons[0];
+
 const autoScroll = () => {
   inputEl.scroll(inputEl.scrollWidth, 0);
 };
@@ -160,11 +162,13 @@ window.addEventListener('keydown', (e) => {
   if (
     ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) !== -1
   ) {
-    const focusedEl = document.activeElement;
-    if (allButtons.indexOf(focusedEl) === -1) return;
+    realFocus = document.activeElement;
+    if (allButtons.indexOf(realFocus) === -1) {
+      lastFocus.focus();
+    }
 
     e.preventDefault();
-    let nowIndex = allButtons.indexOf(focusedEl);
+    let nowIndex = allButtons.indexOf(lastFocus);
     let targetIndex;
     if (e.key === 'ArrowUp') {
       targetIndex = nowIndex - 4;
@@ -176,9 +180,10 @@ window.addEventListener('keydown', (e) => {
       targetIndex = nowIndex + 1;
     }
     if (allButtons[targetIndex]) {
-      focusedEl.tabIndex = -1;
+      lastFocus.tabIndex = -1;
       allButtons[targetIndex].tabIndex = 0;
       allButtons[targetIndex].focus();
+      lastFocus = allButtons[targetIndex];
     }
   }
 });
