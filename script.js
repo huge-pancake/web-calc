@@ -1,25 +1,35 @@
-const arrNum = document.querySelectorAll('[data-num]');
-const arrSym = document.querySelectorAll('[data-sym]');
-const arrAct = document.querySelectorAll('[data-act]');
-const elInput = document.querySelector('.calculator__input-element');
+const numButtons = document.querySelectorAll('[data-num]');
+const symButtons = document.querySelectorAll('[data-sym]');
+const actButtons = document.querySelectorAll('[data-act]');
+const inputEl = document.querySelector('.calculator__input-element');
 
 const validNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
 const validSym = ['+', '-', '*', '/', '%', '(', ')'];
 
+const autoScroll = () => {
+  inputEl.scroll(inputEl.scrollWidth, 0);
+}
 /**
  * Try to append a number
  * @param {MouseEvent} e
  */
 const tryToAppendNumber = (e) => {
   const targetVal = e.target.getAttribute('data-num');
-  const val = elInput.value.split('');
+  const val = inputEl.value.split('');
   const valLen = val.length;
   const lastChar = val[valLen - 1];
   let acceptJoin = true;
 
-  if (acceptJoin) {
-    elInput.value += targetVal;
+  // Maybe '.' is not a number? It has the accept rule like a symbol now.
+  if (targetVal === '.' && lastChar === '.') {
+    acceptJoin = false;
   }
+
+  if (acceptJoin) {
+    inputEl.value += targetVal;
+  }
+
+  autoScroll();
 };
 /**
  * Try to append a symbol
@@ -27,7 +37,7 @@ const tryToAppendNumber = (e) => {
  */
 const tryToAppendSymbol = (e) => {
   const targetSym = e.target.getAttribute('data-sym');
-  const val = elInput.value.split('');
+  const val = inputEl.value.split('');
   const valLen = val.length;
   const lastChar = val[valLen - 1];
   const replaceSym = validSym.indexOf(lastChar) === -1 ? false : true;
@@ -37,17 +47,19 @@ const tryToAppendSymbol = (e) => {
   }
   if (targetSym === '()') {
     if (validNum.indexOf(lastChar) !== -1) {
-      elInput.value += ')';
+      inputEl.value += ')';
     } else {
-      elInput.value += '(';
+      inputEl.value += '(';
     }
     return;
   }
 
-  if (replaceSym) {
-    elInput.value = elInput.value.substr(0, elInput.value.length - 1);
+  if (replaceSym && lastChar !== '(' && lastChar !== ')') {
+    inputEl.value = inputEl.value.substr(0, inputEl.value.length - 1);
   }
-  elInput.value += targetSym;
+  inputEl.value += targetSym;
+
+  autoScroll();
 };
 /**
  * Try to act
@@ -57,37 +69,40 @@ const tryToAct = (e) => {
   const targetAct = e.target.getAttribute('data-act');
 
   if (targetAct == 'clear') {
-    elInput.value = '';
+    inputEl.value = '';
   } else if (targetAct == 'backspace') {
-    elInput.value = elInput.value.substr(0, elInput.value.length - 1);
+    inputEl.value = inputEl.value.substr(0, inputEl.value.length - 1);
   } else if (targetAct == 'query') {
-    elInput.value = eval(elInput.value) || '';
+    inputEl.value = eval(inputEl.value) || '';
   }
 };
 
-for (const i in arrNum) {
-  if (Object.hasOwnProperty.call(arrNum, i)) {
-    const el = arrNum[i];
+for (const i in numButtons) {
+  if (Object.hasOwnProperty.call(numButtons, i)) {
+    const el = numButtons[i];
     el.addEventListener('click', tryToAppendNumber);
   }
 }
 
-for (const i in arrSym) {
-  if (Object.hasOwnProperty.call(arrSym, i)) {
-    const el = arrSym[i];
+for (const i in symButtons) {
+  if (Object.hasOwnProperty.call(symButtons, i)) {
+    const el = symButtons[i];
     el.addEventListener('click', tryToAppendSymbol);
   }
 }
 
-for (const i in arrAct) {
-  if (Object.hasOwnProperty.call(arrAct, i)) {
-    const el = arrAct[i];
+for (const i in actButtons) {
+  if (Object.hasOwnProperty.call(actButtons, i)) {
+    const el = actButtons[i];
     el.addEventListener('click', tryToAct);
   }
 }
 
 window.addEventListener('keydown', (e) => {
+  // For debug
   console.log(e.key);
+
+  // TODO: Add support for ()
   if (e.key === 'Enter') {
     e.preventDefault();
     document.querySelector('[data-act="query"]').click();

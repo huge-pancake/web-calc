@@ -36,6 +36,8 @@ body {
   border: 0;
   border-radius: inherit;
   outline: 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
 }
 
 .calculator__keyboard-container {
