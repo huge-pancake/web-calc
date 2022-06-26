@@ -98,3 +98,18 @@ body {
 .calculator__keyboard-container button:active::before {
   opacity: 0.16;
 }
+
+.key-showing {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  padding: 0 16px;
+  min-width: 64px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}

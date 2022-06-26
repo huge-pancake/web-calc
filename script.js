@@ -3,9 +3,12 @@ const symButtons = document.querySelectorAll('[data-sym]');
 const actButtons = document.querySelectorAll('[data-act]');
 const allButtons = [...document.querySelectorAll('.calculator button')];
 const inputEl = document.querySelector('.calculator__input-element');
+const keyShowing = document.querySelector('.key-showing');
 
+// Maybe '.' is not a number? But this way is easier
 const validNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
 const validSym = ['+', '-', '*', '/', '%', '(', ')'];
+let unpairedBrackets = 0;
 
 const autoScroll = () => {
   inputEl.scroll(inputEl.scrollWidth, 0);
@@ -21,11 +24,12 @@ const tryToAppendNumber = (e) => {
   const lastChar = val[valLen - 1];
   let acceptJoin = true;
 
-  // Maybe '.' is not a number? It has the accept rule like a symbol now.
+  // Maybe '.' is not a number? It has the accept rule like a symbol
   if (targetVal === '.' && lastChar === '.') {
     acceptJoin = false;
   }
 
+  // Just valid number can be joined
   if (acceptJoin) {
     inputEl.value += targetVal;
   }
@@ -43,21 +47,33 @@ const tryToAppendSymbol = (e) => {
   const lastChar = val[valLen - 1];
   const replaceSym = validSym.indexOf(lastChar) === -1 ? false : true;
 
-  if (valLen === 0) {
+  // If there is no anything in the input and the user didn't click '()'
+  if (valLen === 0 && targetSym !== '()') {
     return;
   }
+  // If the user clicked '()'
   if (targetSym === '()') {
-    if (validNum.indexOf(lastChar) !== -1) {
+    if (
+      (validNum.indexOf(lastChar) !== -1 || lastChar === ')') &&
+      unpairedBrackets > 0
+    ) {
       inputEl.value += ')';
+      unpairedBrackets--;
     } else {
       inputEl.value += '(';
+      unpairedBrackets++;
     }
+    autoScroll();
+
+    // Because the user clicked '()', we don't need to do anything else
     return;
   }
 
+  // If the user wants to replace the last symbol, delete it
   if (replaceSym && lastChar !== '(' && lastChar !== ')') {
     inputEl.value = inputEl.value.substr(0, inputEl.value.length - 1);
   }
+  // Anyway, append the symbol
   inputEl.value += targetSym;
 
   autoScroll();
@@ -74,7 +90,11 @@ const tryToAct = (e) => {
   } else if (targetAct == 'backspace') {
     inputEl.value = inputEl.value.substr(0, inputEl.value.length - 1);
   } else if (targetAct == 'query') {
-    inputEl.value = eval(inputEl.value) || '';
+    try {
+      inputEl.value = eval(inputEl.value) || '';
+    } catch (error) { // If the input is invalid, just tell the user
+      inputEl.value = 'ERR';
+    }
   }
 };
 /**
@@ -83,8 +103,12 @@ const tryToAct = (e) => {
  */
 const initButton = (el) => {
   el.tabIndex = el.tabIndex ? 0 : -1;
-  el.ariaLabel = el.getAttribute('data-num') || el.getAttribute('data-sym') || el.getAttribute('data-act');
-}
+  // TODO: better aria-label
+  el.ariaLabel =
+    el.getAttribute('data-num') ||
+    el.getAttribute('data-sym') ||
+    el.getAttribute('data-act');
+};
 
 for (const i in numButtons) {
   if (Object.hasOwnProperty.call(numButtons, i)) {
@@ -113,6 +137,7 @@ for (const i in actButtons) {
 window.addEventListener('keydown', (e) => {
   // For debug
   console.log(e.key);
+  keyShowing.textContent = e.key;
 
   // TODO: Add support for ()
   if (e.key === 'Enter') {
