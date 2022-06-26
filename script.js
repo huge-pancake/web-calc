@@ -1,6 +1,7 @@
 const numButtons = document.querySelectorAll('[data-num]');
 const symButtons = document.querySelectorAll('[data-sym]');
 const actButtons = document.querySelectorAll('[data-act]');
+const allButtons = [...document.querySelectorAll('.calculator button')];
 const inputEl = document.querySelector('.calculator__input-element');
 
 const validNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
@@ -8,7 +9,7 @@ const validSym = ['+', '-', '*', '/', '%', '(', ')'];
 
 const autoScroll = () => {
   inputEl.scroll(inputEl.scrollWidth, 0);
-}
+};
 /**
  * Try to append a number
  * @param {MouseEvent} e
@@ -76,11 +77,20 @@ const tryToAct = (e) => {
     inputEl.value = eval(inputEl.value) || '';
   }
 };
+/**
+ * Init button
+ * @param {HTMLElement} el
+ */
+const initButton = (el) => {
+  el.tabIndex = el.tabIndex ? 0 : -1;
+  el.ariaLabel = el.getAttribute('data-num') || el.getAttribute('data-sym') || el.getAttribute('data-act');
+}
 
 for (const i in numButtons) {
   if (Object.hasOwnProperty.call(numButtons, i)) {
     const el = numButtons[i];
     el.addEventListener('click', tryToAppendNumber);
+    initButton(el);
   }
 }
 
@@ -88,6 +98,7 @@ for (const i in symButtons) {
   if (Object.hasOwnProperty.call(symButtons, i)) {
     const el = symButtons[i];
     el.addEventListener('click', tryToAppendSymbol);
+    initButton(el);
   }
 }
 
@@ -95,6 +106,7 @@ for (const i in actButtons) {
   if (Object.hasOwnProperty.call(actButtons, i)) {
     const el = actButtons[i];
     el.addEventListener('click', tryToAct);
+    initButton(el);
   }
 }
 
@@ -118,5 +130,30 @@ window.addEventListener('keydown', (e) => {
   } else if (validSym.indexOf(e.key) !== -1) {
     e.preventDefault();
     document.querySelector(`[data-sym="${e.key}"]`).click();
+  }
+
+  if (
+    ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) !== -1
+  ) {
+    const focusedEl = document.activeElement;
+    if (allButtons.indexOf(focusedEl) === -1) return;
+
+    e.preventDefault();
+    let nowIndex = allButtons.indexOf(focusedEl);
+    let targetIndex;
+    if (e.key === 'ArrowUp') {
+      targetIndex = nowIndex - 4;
+    } else if (e.key === 'ArrowDown') {
+      targetIndex = nowIndex + 4;
+    } else if (e.key === 'ArrowLeft') {
+      targetIndex = nowIndex - 1;
+    } else {
+      targetIndex = nowIndex + 1;
+    }
+    if (allButtons[targetIndex]) {
+      focusedEl.tabIndex = -1;
+      allButtons[targetIndex].tabIndex = 0;
+      allButtons[targetIndex].focus();
+    }
   }
 });
