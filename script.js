@@ -8,8 +8,10 @@ const buttons = {
 };
 const ioEl = document.querySelector('.calculator__io-element');
 const previewEl = document.querySelector('.calculator__io-preview');
-const keyCodeShowing = document.querySelector('.code');
-const keyTimesShowing = document.querySelector('.times');
+const keyShowing = {
+  name: document.querySelector('.name'),
+  times: document.querySelector('.times'),
+};
 
 // Maybe '.' is not a number? But this way is easier
 const validNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
@@ -214,11 +216,11 @@ window.addEventListener('keydown', (e) => {
     (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt'
       ? 'void'
       : e.key);
-  if (keyCodeShowing.textContent === fullKey) {
-    keyTimesShowing.textContent = parseInt(keyTimesShowing.textContent) + 1;
+  if (keyShowing.name.textContent === fullKey) {
+    keyShowing.times.textContent = parseInt(keyShowing.times.textContent) + 1;
   } else {
-    keyCodeShowing.textContent = fullKey;
-    keyTimesShowing.textContent = 1;
+    keyShowing.name.textContent = fullKey;
+    keyShowing.times.textContent = 1;
   }
 
   // If target is button
@@ -263,15 +265,15 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     setTimeout(() => {
       m();
-      keyCodeShowing.textContent = 'Why not press "M"?';
+      keyShowing.name.textContent = 'Why not press "M"?';
     }, 500);
   }
   if (e.key === 'M') {
     e.preventDefault();
     setTimeout(() => {
       moo();
-      keyCodeShowing.textContent =
-        'Now you know this web-calc has Super Cow Power.';
+      keyShowing.name.textContent =
+        'Now you know this web-calc has Super Koala Power.';
     }, 500);
   }
 });
@@ -298,12 +300,13 @@ function moo() {
   previewEl.style.justifyContent = 'left';
   previewEl.innerHTML = `
     <pre>
- (__)
-~(..)~
-.(oo)
-  **
-~ ~ ~ ~
-..."Have you mooed today?"...</pre>
+..."Oh sorry! It is
+    Super Koala Power!"...
+       ___
+     {~._.~}
+      ( Y )
+     ()~*~()
+     (_)-(_)</pre>
   `;
   unMoo();
 }
