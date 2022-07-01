@@ -260,12 +260,15 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     setTimeout(() => {
       m();
+      keyCodeShowing.textContent = 'Why not press "M"?';
     }, 500);
   }
   if (e.key === 'M') {
     e.preventDefault();
     setTimeout(() => {
       moo();
+      keyCodeShowing.textContent =
+        'Now you know this web-calc has Super Cow Power.';
     }, 500);
   }
 });
