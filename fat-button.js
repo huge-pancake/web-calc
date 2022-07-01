@@ -67,12 +67,37 @@ export default class FatButton extends HTMLElement {
   }
   connectedCallback() {
     this.render();
+    this.addEventListeners();
+  }
+  disconnectedCallback() {
+    this.removeEventListeners();
   }
   render() {
     this.shadowRoot.innerHTML = this.html;
     this.tabIndex = this.tabIndex ? 0 : -1;
     this.setAttribute('rule', 'button');
   }
+  addEventListeners() {
+    this.addEventListener('keydown', this.handleKeyDown);
+    this.addEventListener('keyup', this.handleKeyUp);
+  }
+  removeEventListeners() {
+    this.removeEventListener('keydown', this.handleKeyDown);
+    this.removeEventListener('keyup', this.handleKeyUp);
+  }
+  handleKeyDown = (e) => {
+    this.keyboardState = false;
+    if (e.key === 'Enter') {
+      this.click();
+    }
+  };
+  handleKeyUp = (e) => {
+    this.keyboardState = true;
+    if (e.key === ' ') {
+      this.click();
+    }
+  };
+  keyboardState = true;
   static get is() {
     return 'fat-button';
   }

@@ -1,5 +1,6 @@
 'use strict';
 
+// Elements definition
 const buttons = {
   number: document.querySelectorAll('[data-act-number]'),
   operator: document.querySelectorAll('[data-act-operator]'),
@@ -8,21 +9,24 @@ const buttons = {
 };
 const ioEl = document.querySelector('.calculator__io-element');
 const previewEl = document.querySelector('.calculator__io-preview');
+const keyBoardEl = document.querySelector('.calculator__keyboard');
 const keyShowing = {
   name: document.querySelector('.name'),
   times: document.querySelector('.times'),
 };
 
-// Maybe '.' is not a number? But this way is easier
+// Calculating restrictions
 const validNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
 const validSym = ['+', '-', '×', '÷', '%', '(', ')', '^'];
 const validLongSym = ['sqrt(', 'fact('];
 const validPositionKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 var unpairedBrackets = 0;
 
+// Focus handling
 var lastFocus = buttons.all[0];
+var realFocus;
 
-// For value handling
+// Value handling
 /**
  * @param {string} val
  * @returns {string}
@@ -45,7 +49,8 @@ function getValEnding(val, targetLen) {
   return val.substring(val.length - targetLen, val.length);
 }
 
-function updatePreview() {
+function handleValueChange() {
+  ioEl.scrollTo(0, ioEl.scrollHeight - 126 - 24);
   try {
     previewEl.textContent = eval(makeValueComputable(ioEl.textContent)) || '';
   } catch (error) {
@@ -76,7 +81,7 @@ function tryToAppendNumber(e) {
     ioEl.textContent += targetVal;
   }
 
-  updatePreview();
+  handleValueChange();
 }
 /**
  * @param {MouseEvent} e
@@ -112,7 +117,7 @@ function tryToAppendSymbol(e) {
       unpairedBrackets++;
     }
 
-    updatePreview();
+    handleValueChange();
 
     // Because the user clicked '()', we don't need to do anything else
     return;
@@ -128,7 +133,7 @@ function tryToAppendSymbol(e) {
   // Anyway, append the symbol
   ioEl.textContent += targetSym;
 
-  updatePreview();
+  handleValueChange();
 }
 /**
  * @param {MouseEvent} e
@@ -141,7 +146,7 @@ function tryToAct(e) {
     ioEl.textContent = '';
     unpairedBrackets = 0;
 
-    updatePreview();
+    handleValueChange();
 
     return;
   }
@@ -152,12 +157,12 @@ function tryToAct(e) {
 
     // If last 5 chars are calculate symbol
     if (validLongSym.includes(lastChar5)) {
-      ioEl.textContent = ioEl.textContent.substr(
+      ioEl.textContent = ioEl.textContent.substring(
         0,
         ioEl.textContent.length - 5
       );
 
-      updatePreview();
+      handleValueChange();
 
       return;
     }
@@ -176,7 +181,7 @@ function tryToAct(e) {
       ioEl.textContent.length - 1
     );
 
-    updatePreview();
+    handleValueChange();
 
     return;
   }
@@ -186,10 +191,8 @@ function tryToAct(e) {
     try {
       ioEl.textContent = eval(makeValueComputable(ioEl.textContent)) || '';
 
-      updatePreview();
-    } catch (error) {
-      ioEl.textContent = 'Invalid input';
-    }
+      handleValueChange();
+    } catch (error) {}
 
     return;
   }
@@ -208,23 +211,25 @@ buttons.action.forEach((el) => {
 
 // Global keydown event listening
 window.addEventListener('keydown', (e) => {
-  // For key showing
   let fullKey =
-    (e.ctrlKey ? 'Ctrl + ' : '') +
-    (e.shiftKey ? 'Shift + ' : '') +
-    (e.altKey ? 'Alt + ' : '') +
+    (e.ctrlKey ? 'Ctrl+' : '') +
+    (e.shiftKey ? 'Shift+' : '') +
+    (e.altKey ? 'Alt+' : '') +
     (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt'
       ? 'void'
       : e.key);
   if (keyShowing.name.textContent === fullKey) {
     keyShowing.times.textContent = parseInt(keyShowing.times.textContent) + 1;
   } else {
+    if (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt') {
+      return;
+    }
     keyShowing.name.textContent = fullKey;
     keyShowing.times.textContent = 1;
   }
 
   // If target is button
-  let targetButton = document.querySelector(`[data-key-bind~="${e.key}"]`);
+  let targetButton = document.querySelector(`[data-key-bind~="${fullKey}"]`);
   if (targetButton) {
     e.preventDefault();
 
@@ -260,6 +265,12 @@ window.addEventListener('keydown', (e) => {
     }
   }
 
+  if (e.key === 'k') {
+    e.preventDefault();
+
+    toggleKeyBoard();
+  }
+
   // moo
   if (e.key === 'm') {
     e.preventDefault();
@@ -267,6 +278,8 @@ window.addEventListener('keydown', (e) => {
       m();
       keyShowing.name.textContent = 'Why not press "M"?';
     }, 500);
+
+    return;
   }
   if (e.key === 'M') {
     e.preventDefault();
@@ -275,6 +288,8 @@ window.addEventListener('keydown', (e) => {
       keyShowing.name.textContent =
         'Now you know this web-calc has Super Koala Power.';
     }, 500);
+
+    return;
   }
 });
 
@@ -286,6 +301,14 @@ window.fact = (n) => {
   }
   return n * fact(n - 1);
 };
+
+function toggleKeyBoard() {
+  if (keyBoardEl.hasAttribute('hidden')) {
+    keyBoardEl.removeAttribute('hidden');
+  } else {
+    keyBoardEl.setAttribute('hidden', '');
+  }
+}
 
 // moo
 function m() {
@@ -300,8 +323,8 @@ function moo() {
   previewEl.style.justifyContent = 'left';
   previewEl.innerHTML = `
     <pre>
-..."Oh sorry! It is
-    Super Koala Power!"...
+..."Oh! It is Super
+    Koala Power!"...
        ___
      {~._.~}
       ( Y )
@@ -314,6 +337,6 @@ function unMoo() {
   setTimeout(() => {
     ioEl.removeAttribute('style');
     previewEl.removeAttribute('style');
-    updatePreview();
+    handleValueChange();
   }, 1000);
 }
