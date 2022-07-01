@@ -14,10 +14,9 @@ const validNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
 const validSym = ['+', '-', '×', '÷', '%', '(', ')', '^'];
 const validLongSym = ['sqrt(', 'fact('];
 const validPositionKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
-let unpairedBrackets = 0;
-let thereWasADot = false;
+var unpairedBrackets = 0;
 
-let lastFocus = buttons.all[0];
+var lastFocus = buttons.all[0];
 
 // For value handling
 /**
