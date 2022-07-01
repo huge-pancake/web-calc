@@ -106,10 +106,7 @@ function tryToAppendSymbol(e) {
   }
   // If the user clicked '()'
   if (targetSym === '()') {
-    if (
-      (validNum.indexOf(lastChar) !== -1 || lastChar === ')') &&
-      unpairedBrackets > 0
-    ) {
+    if ((validNum.indexOf(lastChar) !== -1 || lastChar === ')') && unpairedBrackets > 0) {
       ioEl.textContent += ')';
       unpairedBrackets--;
     } else {
@@ -125,10 +122,7 @@ function tryToAppendSymbol(e) {
 
   // If the user wants to replace the last one symbol
   if ((oneSymReplacing || doubleSymReplacing) && !lastIsBracket) {
-    ioEl.textContent = ioEl.textContent.substring(
-      0,
-      ioEl.textContent.length - 1
-    );
+    ioEl.textContent = ioEl.textContent.substring(0, ioEl.textContent.length - 1);
   }
   // Anyway, append the symbol
   ioEl.textContent += targetSym;
@@ -157,10 +151,7 @@ function tryToAct(e) {
 
     // If last 5 chars are calculate symbol
     if (validLongSym.includes(lastChar5)) {
-      ioEl.textContent = ioEl.textContent.substring(
-        0,
-        ioEl.textContent.length - 5
-      );
+      ioEl.textContent = ioEl.textContent.substring(0, ioEl.textContent.length - 5);
 
       handleValueChange();
 
@@ -176,10 +167,7 @@ function tryToAct(e) {
     }
 
     // Default
-    ioEl.textContent = ioEl.textContent.substring(
-      0,
-      ioEl.textContent.length - 1
-    );
+    ioEl.textContent = ioEl.textContent.substring(0, ioEl.textContent.length - 1);
 
     handleValueChange();
 
@@ -215,9 +203,7 @@ window.addEventListener('keydown', (e) => {
     (e.ctrlKey ? 'Ctrl+' : '') +
     (e.shiftKey ? 'Shift+' : '') +
     (e.altKey ? 'Alt+' : '') +
-    (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt'
-      ? 'void'
-      : e.key);
+    (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt' ? 'void' : e.key);
   if (keyShowing.name.textContent === fullKey) {
     keyShowing.times.textContent = parseInt(keyShowing.times.textContent) + 1;
   } else {
@@ -274,20 +260,13 @@ window.addEventListener('keydown', (e) => {
   // moo
   if (e.key === 'm') {
     e.preventDefault();
-    setTimeout(() => {
-      m();
-      keyShowing.name.textContent = 'Why not press "M"?';
-    }, 500);
+    moo();
 
     return;
   }
   if (e.key === 'M') {
     e.preventDefault();
-    setTimeout(() => {
-      moo();
-      keyShowing.name.textContent =
-        'Now you know this web-calc has Super Koala Power.';
-    }, 500);
+    Moo();
 
     return;
   }
@@ -311,32 +290,53 @@ function toggleKeyBoard() {
 }
 
 // moo
-function m() {
-  previewEl.textContent = 'This web-calc has Super Cow Power.';
-  unMoo();
-}
-function moo() {
+var Mooed = false;
+function initMoo() {
   ioEl.style.display = 'none';
   previewEl.style.padding = '0 12px';
   previewEl.style.height = '100%';
   previewEl.style.textAlign = 'left';
   previewEl.style.justifyContent = 'left';
-  previewEl.innerHTML = `
-    <pre>
-..."Oh! It is Super
-    Koala Power!"...
-       ___
-     {~._.~}
-      ( Y )
-     ()~*~()
-     (_)-(_)</pre>
-  `;
-  unMoo();
+  previewEl.style.fontSize = '0.75rem';
 }
-function unMoo() {
+/**
+ * @param {string} key
+ */
+function unMoo(key) {
   setTimeout(() => {
     ioEl.removeAttribute('style');
     previewEl.removeAttribute('style');
     handleValueChange();
-  }, 1000);
+    keyShowing.name.textContent = key;
+  }, 800);
+}
+function moo() {
+  initMoo();
+  keyShowing.name.textContent = 'You pressed "m"';
+  previewEl.innerHTML = `
+<pre>* Text from 'm'
+This web-calc has Super Cow Power.${Mooed ? '\n(or Super Koala Power?)' : ''}
+- I'm ${Mooed ? 'not sure now' : 'sure'}
+To active it maybe press this key with
+"Sh..".. gosh, I slipped it out!
+</pre>`;
+  unMoo('m');
+}
+function Moo() {
+  Mooed = true;
+  initMoo();
+  keyShowing.name.textContent = 'So now we know this web-calc has Super Koala Power, not Super Cow Power, right? But "m" won\'t know.';
+  previewEl.innerHTML = `
+<pre>* Text from 'M'
+"Uh... It's Super Koala...
+Not Super Cow..."
+         ___
+       {~._.~}
+        ( Y )
+       ()~*~()
+       (_)-(_)
+"Have you mooed...uh, wait,
+ what's the cry of koala?"
+</pre>`;
+  unMoo('Shift+M');
 }

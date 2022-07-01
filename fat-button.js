@@ -18,8 +18,9 @@ const FatButtonStyle = `
   -webkit-appearance: none;
 
   color: rgb(208, 188, 255);
+  font-family: var(--calc-global-font-family), sans-serif;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.1px;
 }
 :host([dense]) {
@@ -56,6 +57,9 @@ const FatButtonStyle = `
 }
 :host(::before) #state-layer {
   opacity: 0.16;
+}
+::slotted(svg) {
+  fill: currentColor;
 }
 `;
 
