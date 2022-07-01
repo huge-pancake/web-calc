@@ -25,11 +25,12 @@ let lastFocus = buttons.all[0];
  * @returns {string}
  */
 function makeValueComputable(val) {
-  val = val.replace('×', '*');
-  val = val.replace('÷', '/');
-  val = val.replace('%', '/100*');
-  val = val.replace('^', '**');
-  val = val.replace('π', 'Math.PI');
+  val = val.split('×').join('*');
+  val = val.split('÷').join('/');
+  val = val.split('%').join('/100*');
+  val = val.split('^').join('**');
+  val = val.split('π').join('Math.PI');
+
   return val;
 }
 /**
@@ -37,7 +38,7 @@ function makeValueComputable(val) {
  * @param {number} targetLen
  * @returns {string}
  */
-function getLastVal(val, targetLen) {
+function getValEnding(val, targetLen) {
   return val.substring(val.length - targetLen, val.length);
 }
 
@@ -56,7 +57,7 @@ function tryToAppendNumber(e) {
   lastFocus = e.target;
   const targetVal = e.target.getAttribute('data-act-number');
 
-  const lastChar = getLastVal(ioEl.textContent, 1);
+  const lastChar = getValEnding(ioEl.textContent, 1);
 
   let acceptJoin = true;
 
@@ -84,8 +85,8 @@ function tryToAppendSymbol(e) {
   let val = ioEl.textContent;
   let valLen = val.length;
 
-  let lastChar = getLastVal(ioEl.textContent, 1);
-  let lastChar2 = getLastVal(ioEl.textContent, 2);
+  let lastChar = getValEnding(ioEl.textContent, 1);
+  let lastChar2 = getValEnding(ioEl.textContent, 2);
 
   let oneSymReplacing = validSym.indexOf(lastChar) !== -1;
   let doubleSymReplacing = lastChar2 === '**';
@@ -142,8 +143,8 @@ function tryToAct(e) {
   }
 
   if (targetAct == 'backspace') {
-    let lastChar = getLastVal(ioEl.textContent, 1);
-    let lastChar5 = getLastVal(ioEl.textContent, 5);
+    let lastChar = getValEnding(ioEl.textContent, 1);
+    let lastChar5 = getValEnding(ioEl.textContent, 5);
 
     // If last 5 chars are calculate symbol
     if (validLongSym.includes(lastChar5)) {
