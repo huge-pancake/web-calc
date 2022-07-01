@@ -1,3 +1,5 @@
+'use strict';
+
 const buttons = {
   number: document.querySelectorAll('[data-act-number]'),
   operator: document.querySelectorAll('[data-act-operator]'),
@@ -87,7 +89,8 @@ function tryToAppendSymbol(e) {
   let lastChar = getValEnding(ioEl.textContent, 1);
   let lastChar2 = getValEnding(ioEl.textContent, 2);
 
-  let oneSymReplacing = validSym.indexOf(lastChar) !== -1;
+  let lastIsBracket = lastChar === '(' || lastChar === ')';
+  let oneSymReplacing = validSym.includes(lastChar) && !lastIsBracket;
   let doubleSymReplacing = lastChar2 === '**';
 
   // If there is no anything in the input and the user didn't click '()'
@@ -114,7 +117,7 @@ function tryToAppendSymbol(e) {
   }
 
   // If the user wants to replace the last one symbol
-  if (oneSymReplacing || doubleSymReplacing) {
+  if ((oneSymReplacing || doubleSymReplacing) && !lastIsBracket) {
     ioEl.textContent = ioEl.textContent.substring(
       0,
       ioEl.textContent.length - 1
