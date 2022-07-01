@@ -1,53 +1,94 @@
-const numButtons = document.querySelectorAll('[data-num]');
-const symButtons = document.querySelectorAll('[data-sym]');
-const actButtons = document.querySelectorAll('[data-act]');
-const allButtons = [...document.querySelectorAll('.calculator button')];
-const inputEl = document.querySelector('.calculator__input-element');
-const keyShowing = document.querySelector('.key-showing');
+const buttons = {
+  number: document.querySelectorAll('[data-act-number]'),
+  operator: document.querySelectorAll('[data-act-operator]'),
+  action: document.querySelectorAll('[data-act-action]'),
+  all: [...document.querySelectorAll('.calculator fat-button')],
+};
+const ioEl = document.querySelector('.calculator__io-element');
+const previewEl = document.querySelector('.calculator__io-preview');
+const keyCodeShowing = document.querySelector('.code');
+const keyTimesShowing = document.querySelector('.times');
 
 // Maybe '.' is not a number? But this way is easier
 const validNum = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
-const validSym = ['+', '-', '*', '/', '%', '(', ')'];
+const validSym = ['+', '-', '×', '÷', '%', '(', ')', '^'];
+const validLongSym = ['sqrt(', 'fact('];
+const validPositionKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 let unpairedBrackets = 0;
+let thereWasADot = false;
 
-let lastFocus = allButtons[0];
+let lastFocus = buttons.all[0];
 
-const autoScroll = () => {
-  inputEl.scroll(inputEl.scrollWidth, 0);
-};
+// For value handling
 /**
- * Try to append a number
+ * @param {string} val
+ * @returns {string}
+ */
+function makeValueComputable(val) {
+  val = val.replace('×', '*');
+  val = val.replace('÷', '/');
+  val = val.replace('%', '/100*');
+  val = val.replace('^', '**');
+  val = val.replace('π', 'Math.PI');
+  return val;
+}
+/**
+ * @param {string} val
+ * @param {number} targetLen
+ * @returns {string}
+ */
+function getLastVal(val, targetLen) {
+  return val.substring(val.length - targetLen, val.length);
+}
+
+function updatePreview() {
+  try {
+    previewEl.textContent = eval(makeValueComputable(ioEl.textContent)) || '';
+  } catch (error) {
+    previewEl.textContent = 'Invalid input';
+  }
+}
+
+/**
  * @param {MouseEvent} e
  */
-const tryToAppendNumber = (e) => {
-  const targetVal = e.target.getAttribute('data-num');
-  const val = inputEl.value.split('');
-  const valLen = val.length;
-  const lastChar = val[valLen - 1];
+function tryToAppendNumber(e) {
+  lastFocus = e.target;
+  const targetVal = e.target.getAttribute('data-act-number');
+
+  const lastChar = getLastVal(ioEl.textContent, 1);
+
   let acceptJoin = true;
 
-  // Maybe '.' is not a number? It has the accept rule like a symbol
   if (targetVal === '.' && lastChar === '.') {
     acceptJoin = false;
+  }
+  if (validLongSym.includes(targetVal)) {
+    unpairedBrackets++;
   }
 
   // Just valid number can be joined
   if (acceptJoin) {
-    inputEl.value += targetVal;
+    ioEl.textContent += targetVal;
   }
 
-  autoScroll();
-};
+  updatePreview();
+}
 /**
- * Try to append a symbol
  * @param {MouseEvent} e
  */
-const tryToAppendSymbol = (e) => {
-  const targetSym = e.target.getAttribute('data-sym');
-  const val = inputEl.value.split('');
-  const valLen = val.length;
-  const lastChar = val[valLen - 1];
-  const replaceSym = validSym.indexOf(lastChar) === -1 ? false : true;
+function tryToAppendSymbol(e) {
+  lastFocus = e.target;
+  let targetSym = e.target.getAttribute('data-act-operator');
+
+  let val = ioEl.textContent;
+  let valLen = val.length;
+
+  let lastChar = getLastVal(ioEl.textContent, 1);
+  let lastChar2 = getLastVal(ioEl.textContent, 2);
+
+  let oneSymReplacing = validSym.indexOf(lastChar) !== -1;
+  let doubleSymReplacing = lastChar2 === '**';
 
   // If there is no anything in the input and the user didn't click '()'
   if (valLen === 0 && targetSym !== '()') {
@@ -59,116 +100,145 @@ const tryToAppendSymbol = (e) => {
       (validNum.indexOf(lastChar) !== -1 || lastChar === ')') &&
       unpairedBrackets > 0
     ) {
-      inputEl.value += ')';
+      ioEl.textContent += ')';
       unpairedBrackets--;
     } else {
-      inputEl.value += '(';
+      ioEl.textContent += '(';
       unpairedBrackets++;
     }
-    autoScroll();
+
+    updatePreview();
 
     // Because the user clicked '()', we don't need to do anything else
     return;
   }
 
-  // If the user wants to replace the last symbol, delete it
-  if (replaceSym && lastChar !== '(' && lastChar !== ')') {
-    inputEl.value = inputEl.value.substr(0, inputEl.value.length - 1);
+  // If the user wants to replace the last one symbol
+  if (oneSymReplacing || doubleSymReplacing) {
+    ioEl.textContent = ioEl.textContent.substring(
+      0,
+      ioEl.textContent.length - 1
+    );
   }
   // Anyway, append the symbol
-  inputEl.value += targetSym;
+  ioEl.textContent += targetSym;
 
-  autoScroll();
-};
+  updatePreview();
+}
 /**
- * Try to act
  * @param {MouseEvent} e
  */
-const tryToAct = (e) => {
-  const targetAct = e.target.getAttribute('data-act');
+function tryToAct(e) {
+  lastFocus = e.target;
+  let targetAct = e.target.getAttribute('data-act-action');
 
   if (targetAct == 'clear') {
-    inputEl.value = '';
-  } else if (targetAct == 'backspace') {
-    inputEl.value = inputEl.value.substr(0, inputEl.value.length - 1);
-  } else if (targetAct == 'query') {
+    ioEl.textContent = '';
+    unpairedBrackets = 0;
+
+    updatePreview();
+
+    return;
+  }
+
+  if (targetAct == 'backspace') {
+    let lastChar = getLastVal(ioEl.textContent, 1);
+    let lastChar5 = getLastVal(ioEl.textContent, 5);
+
+    // If last 5 chars are calculate symbol
+    if (validLongSym.includes(lastChar5)) {
+      ioEl.textContent = ioEl.textContent.substr(
+        0,
+        ioEl.textContent.length - 5
+      );
+
+      updatePreview();
+
+      return;
+    }
+
+    // When there is a bracket
+    if (lastChar === '(') {
+      unpairedBrackets--;
+    }
+    if (lastChar === ')') {
+      unpairedBrackets++;
+    }
+
+    // Default
+    ioEl.textContent = ioEl.textContent.substring(
+      0,
+      ioEl.textContent.length - 1
+    );
+
+    updatePreview();
+
+    return;
+  }
+
+  if (targetAct == 'equal') {
+    // If the input is invalid, just tell the user
     try {
-      inputEl.value = eval(inputEl.value) || '';
-    } catch (error) { // If the input is invalid, just tell the user
-      inputEl.value = 'ERR';
+      ioEl.textContent = eval(makeValueComputable(ioEl.textContent)) || '';
+
+      updatePreview();
+    } catch (error) {
+      ioEl.textContent = 'Invalid input';
     }
-  }
-};
-/**
- * Init button
- * @param {HTMLElement} el
- */
-const initButton = (el) => {
-  el.tabIndex = el.tabIndex ? 0 : -1;
-  // TODO: better aria-label
-  el.ariaLabel =
-    el.getAttribute('data-num') ||
-    el.getAttribute('data-sym') ||
-    el.getAttribute('data-act');
-};
 
-for (const i in numButtons) {
-  if (Object.hasOwnProperty.call(numButtons, i)) {
-    const el = numButtons[i];
-    el.addEventListener('click', tryToAppendNumber);
-    initButton(el);
+    return;
   }
 }
 
-for (const i in symButtons) {
-  if (Object.hasOwnProperty.call(symButtons, i)) {
-    const el = symButtons[i];
-    el.addEventListener('click', tryToAppendSymbol);
-    initButton(el);
-  }
-}
+// Buttons init
+buttons.number.forEach((el) => {
+  el.addEventListener('click', tryToAppendNumber);
+});
+buttons.operator.forEach((el) => {
+  el.addEventListener('click', tryToAppendSymbol);
+});
+buttons.action.forEach((el) => {
+  el.addEventListener('click', tryToAct);
+});
 
-for (const i in actButtons) {
-  if (Object.hasOwnProperty.call(actButtons, i)) {
-    const el = actButtons[i];
-    el.addEventListener('click', tryToAct);
-    initButton(el);
-  }
-}
-
+// Global keydown event listening
 window.addEventListener('keydown', (e) => {
-  // For debug
-  console.log(e.key);
-  keyShowing.textContent = e.key;
-
-  // TODO: Add support for ()
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    document.querySelector('[data-act="query"]').click();
-  } else if (e.key === 'Escape') {
-    e.preventDefault();
-    document.querySelector('[data-act="clear"]').click();
-  } else if (e.key === 'Backspace') {
-    e.preventDefault();
-    document.querySelector('[data-act="backspace"]').click();
-  } else if (validNum.indexOf(e.key) !== -1) {
-    e.preventDefault();
-    document.querySelector(`[data-num="${e.key}"]`).click();
-  } else if (validSym.indexOf(e.key) !== -1) {
-    e.preventDefault();
-    document.querySelector(`[data-sym="${e.key}"]`).click();
+  // For key showing
+  let fullKey =
+    (e.ctrlKey ? 'Ctrl + ' : '') +
+    (e.shiftKey ? 'Shift + ' : '') +
+    (e.altKey ? 'Alt + ' : '') +
+    (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt'
+      ? 'void'
+      : e.key);
+  if (keyCodeShowing.textContent === fullKey) {
+    keyTimesShowing.textContent = parseInt(keyTimesShowing.textContent) + 1;
+  } else {
+    keyCodeShowing.textContent = fullKey;
+    keyTimesShowing.textContent = 1;
   }
 
-  if (
-    ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) !== -1
-  ) {
+  // If target is button
+  let targetButton = document.querySelector(`[data-key-bind~="${e.key}"]`);
+  if (targetButton) {
+    e.preventDefault();
+
+    targetButton.focus();
+    targetButton.click();
+
+    return;
+  }
+
+  // If target is position
+  if (validPositionKeys.includes(e.key)) {
+    e.preventDefault();
+
     realFocus = document.activeElement;
-    if (allButtons.indexOf(realFocus) === -1) {
-      lastFocus.focus();
+    if (buttons.all.includes(realFocus)) {
+      lastFocus = realFocus;
     }
 
-    e.preventDefault();
-    let nowIndex = allButtons.indexOf(lastFocus);
+    let nowIndex = buttons.all.indexOf(lastFocus);
     let targetIndex;
     if (e.key === 'ArrowUp') {
       targetIndex = nowIndex - 4;
@@ -179,11 +249,18 @@ window.addEventListener('keydown', (e) => {
     } else {
       targetIndex = nowIndex + 1;
     }
-    if (allButtons[targetIndex]) {
-      lastFocus.tabIndex = -1;
-      allButtons[targetIndex].tabIndex = 0;
-      allButtons[targetIndex].focus();
-      lastFocus = allButtons[targetIndex];
+    if (buttons.all[targetIndex]) {
+      buttons.all[targetIndex].focus();
+      lastFocus = buttons.all[targetIndex];
     }
   }
 });
+
+// For custom calculating
+window.sqrt = (n) => Math.sqrt(n);
+window.fact = (n) => {
+  if (n === 0) {
+    return 1;
+  }
+  return n * fact(n - 1);
+};
