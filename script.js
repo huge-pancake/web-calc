@@ -254,6 +254,20 @@ window.addEventListener('keydown', (e) => {
       lastFocus = buttons.all[targetIndex];
     }
   }
+
+  // moo
+  if (e.key === 'm') {
+    e.preventDefault();
+    setTimeout(() => {
+      m();
+    }, 500);
+  }
+  if (e.key === 'M') {
+    e.preventDefault();
+    setTimeout(() => {
+      moo();
+    }, 500);
+  }
 });
 
 // For custom calculating
@@ -264,3 +278,33 @@ window.fact = (n) => {
   }
   return n * fact(n - 1);
 };
+
+// moo
+function m() {
+  previewEl.textContent = 'This web-calc has Super Cow Power.';
+  unMoo();
+}
+function moo() {
+  ioEl.style.display = 'none';
+  previewEl.style.padding = '0 12px';
+  previewEl.style.height = '100%';
+  previewEl.style.textAlign = 'left';
+  previewEl.style.justifyContent = 'left';
+  previewEl.innerHTML = `
+    <pre>
+ (__)
+~(..)~
+.(oo)
+  **
+~ ~ ~ ~
+..."Have you mooed today?"...</pre>
+  `;
+  unMoo();
+}
+function unMoo() {
+  setTimeout(() => {
+    ioEl.removeAttribute('style');
+    previewEl.removeAttribute('style');
+    updatePreview();
+  }, 1000);
+}
