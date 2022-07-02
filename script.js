@@ -219,7 +219,6 @@ window.addEventListener('keydown', (e) => {
   if (targetButton) {
     e.preventDefault();
 
-    targetButton.focus();
     targetButton.click();
 
     return;
@@ -308,7 +307,7 @@ function unMoo(key) {
     previewEl.removeAttribute('style');
     handleValueChange();
     keyShowing.name.textContent = key;
-  }, 800);
+  }, 2000);
 }
 function moo() {
   initMoo();
